@@ -27,7 +27,7 @@ public class Escritorio extends javax.swing.JFrame {
     public void AbrirPdf() {
   try {
     if (Desktop.isDesktopSupported()) {
-      File pdfFile = new File("C:\\Users\\pc personal\\Documents\\NetBeansProjects\\Proyecto Final\\src\\Escritorio\\Multimedia\\GUI.pdf");
+      File pdfFile = new File("src/Escritorio/Multimedia/GUI.pdf");
       Desktop.getDesktop().open(pdfFile);
     } else {
       System.out.println("La operación no es compatible en este sistema.");

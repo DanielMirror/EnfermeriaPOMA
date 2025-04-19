@@ -419,41 +419,51 @@ public class Queries {
     }      
     }
     
-    public void RegistrarAsistente(String Matricula, String Fecha) {
+    public void RegistrarAsistente(String Matricula, String Fecha_turno) {
         
-        Connection conn = null;
-        PreparedStatement pst = null;
+    Connection conn = null;
+    PreparedStatement pst = null;
 
+    // Cambié el query para especificar las columnas
+    String query = "INSERT INTO asistentes (Matricula, Fecha_turno) VALUES(?,?)";
+    
+    try {
+        // Obtener la conexión
+        conn = Conexion.conectar();
         
-        String query = "INSERT INTO asistentes VALUES(?,?)";
+        // Preparar la declaración
+        pst = conn.prepareStatement(query);
         
+        // Asignar los valores de Matricula y Fecha_turno
+        pst.setString(1, Matricula);
+        pst.setString(2, Fecha_turno);
+        
+        // Ejecutar la consulta
+        int RA = pst.executeUpdate();
+        
+        // Verificar si la inserción fue exitosa
+        if (RA > 0) {
+            JOptionPane.showMessageDialog(null, "Se ha realizado el registro");
+        } else {
+            JOptionPane.showMessageDialog(null, "No se ha realizado el registro");
+        }
+    } catch (SQLException e) {
+        System.out.println("Error al registrar asistente: " + e.getMessage());
+    } finally {
+        // Cerrar los recursos
         try {
-            conn = Conexion.conectar();
-            
-            pst = conn.prepareStatement(query);
-            
-            pst.setString(1, Matricula);
-            pst.setString(2,Fecha);
-            
-            int RA = pst.executeUpdate();
-            
-            if(RA > 0) {
-                JOptionPane.showMessageDialog(null, "Se ha realizado el registro");
-            } else {
-                JOptionPane.showMessageDialog(null,"No se ha realizado el registro");
-            }
-        } catch(SQLException e) {
-            System.out.println("Error al registrar asistente "+ e.getMessage());
-        } finally {
-            try{
-                if(conn != null) {
+            if (conn != null) {
                 conn.close();
-            } if (pst != null) {
+            }
+            if (pst != null) {
                 pst.close();
             }
-            } catch(SQLException e) {
-            System.out.println("Error al registrar medicamento "+ e.getMessage());
-        } 
+        } catch (SQLException e) {
+            System.out.println("Error al cerrar recursos: " + e.getMessage());
+        }
+    
+
+
     
 }      
 }

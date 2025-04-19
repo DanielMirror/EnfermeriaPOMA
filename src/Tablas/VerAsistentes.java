@@ -54,12 +54,12 @@ public class VerAsistentes extends javax.swing.JInternalFrame {
         
         String query = "SELECT * FROM verAsistentes";
         
-        Object[] columnNames = {"Matricula", "Nombre", "Fecha del Turno"};
+        Object[] columnNames = {"Matricula", "Nombre", "Fecha del Turno", "Jornada"};
         DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
         
         visor.setModel(model);
         
-        String[] datos = new String[3];
+        String[] datos = new String[4];
         
         try {
             
@@ -71,7 +71,8 @@ public class VerAsistentes extends javax.swing.JInternalFrame {
             datos[0] = rs.getString(1);
             datos[1] = rs.getString(2);
             datos[2] = rs.getString(3);   
-            
+            datos[3] = rs.getString(4); 
+             
             model.addRow(datos);
             
             }

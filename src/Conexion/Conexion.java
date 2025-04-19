@@ -17,7 +17,7 @@ public class Conexion {
     
     private static final String URL = "jdbc:mysql://LocalHost:3306/enfermeriapoma";
     private static final String USUARIO = "root";
-    private static final String CLAVE = "1234";
+    private static final String CLAVE = "pokemon";
     
     public static Connection conectar() {
     

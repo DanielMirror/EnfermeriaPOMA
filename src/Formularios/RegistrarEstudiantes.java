@@ -137,16 +137,16 @@ public class RegistrarEstudiantes extends javax.swing.JInternalFrame {
     
         switch (DiagnosticoX) {
             case "Dolor de Cabeza":
-                Diagnostico = 1161;
+                Diagnostico = 1776;
                 break;
             case "Asma":
-                Diagnostico = 1162;
+                Diagnostico = 1777;
                 break;
             case "Alergia":
-                Diagnostico = 1263;
+                Diagnostico = 1778;
                 break;
             case "Esguince":
-                Diagnostico = 1763;
+                Diagnostico = 1779;
                 break;
             case "Dolor de Estomago":
                 Diagnostico = 1773;

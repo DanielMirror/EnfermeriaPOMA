@@ -39,116 +39,124 @@ public class VerRegistrosEst extends javax.swing.JInternalFrame {
         
         @Override
         public boolean isCellEditable(int row, int column) {
-            // Define las columnas que deseas bloquear
-            // Por ejemplo, si quieres bloquear la columna 0 (Matricula) y la columna 2 (Fecha del Turno):
+           
             return column != 0 && column != 4 && column != 5 && column != 6 && column != 7 && column != 8 && column != 9 && column != 10;
         }
     }
     
     public void mostrar() {
-        Connection conn = Conexion.conectar();
-        Statement stm = null;
-        
-        String query = "SELECT * FROM verRegistroEstudiante";
-        
-        Object[] columnNames = {"Matricula", "Fecha", "Llegada", "Salida", "Nombre", "Edad", "Curso", "Diagnostico", "Medicamento", "Cantidad", "Personal"};
-        DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
-        
-        visor.setModel(model);
-        
-        String[] datos = new String[11];
-        
-        try{
-        
-            stm = conn.createStatement();
-            ResultSet rs = stm.executeQuery(query);
-            
-            while(rs.next()) {
-            
-                datos[0] = rs.getString(1);
-                datos[1] = rs.getString(2);
-                datos[2] = rs.getString(3);
-                datos[3] = rs.getString(4);
-                datos[4] = rs.getString(5);
-                datos[5] = rs.getString(6);
-                datos[6] = rs.getString(7);
-                datos[7] = rs.getString(8);
-                datos[8] = rs.getString(9);
-                datos[9] = rs.getString(10);
-                datos[10] = rs.getString(11);
-                
-                model.addRow(datos);
-            
+    Connection conn = Conexion.conectar();
+    Statement stm = null;
+
+    String query = "SELECT * FROM verRegistroEstudiante";
+
+  
+    Object[] columnNames = {
+        "Matricula", "Fecha", "Llegada", "Salida", "Nombre",
+        "Edad", "Curso", "Diagnostico", "Medicamento",
+        "Cantidad", "Personal", "Despachado" 
+    };
+
+    DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
+    visor.setModel(model);
+
+    String[] datos = new String[12]; 
+
+    try {
+        stm = conn.createStatement();
+        ResultSet rs = stm.executeQuery(query);
+
+        while (rs.next()) {
+            for (int i = 0; i < 11; i++) {
+                datos[i] = rs.getString(i + 1);
             }
-        
-        }catch(SQLException e) {
-            System.out.println("Error al recopilar registros: "+ e.getMessage());
-        } finally {
-        
-            try {
-                if(stm != null) {
-                    stm.close();
-                } if(conn != null) {
-                    conn.close();
-                }
-            } catch(SQLException e) {
-                System.out.println("Error al cerrar conexiones: "+ e.getMessage());
+            
+            
+            String despachado = rs.getString(12); 
+            if ("1".equals(despachado)) {
+                datos[11] = "Despachado";
+            } else {
+                datos[11] = "No Despachado";
             }
-        
+            
+            model.addRow(datos);
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al recopilar registros: " + e.getMessage());
+    } finally {
+        try {
+            if (stm != null) stm.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            System.out.println("Error al cerrar conexiones: " + e.getMessage());
         }
     }
+}
+
+
+    
+   
+
+    
+    
+    
+    
     
     public void mostrarConsulta() {
-        Connection conn = Conexion.conectar();
-        PreparedStatement pst = null;
-        String Nombre = BuscarNomTxt.getText();
-        
-        String query = "SELECT * FROM verRegistroEstudiante WHERE nombreE LIKE ?";
-        
-        Object[] columnNames = {"Matricula", "Fecha", "Llegada", "Salida", "Nombre", "Edad", "Curso", "Diagnostico", "Medicamento", "Cantidad", "Personal"};
-        DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
-        
-        visor.setModel(model);
-        
-        String[] datos = new String[11];
-        
-        try {
-            pst = conn.prepareStatement(query);
-            pst.setString(1, '%'+Nombre+'%');            
+    Connection conn = Conexion.conectar();
+    PreparedStatement pst = null;
+    String Nombre = BuscarNomTxt.getText();
+    boolean soloDespachados = checkBoxDespachados.isSelected(); 
 
-            ResultSet rs = pst.executeQuery();
-            
-            while(rs.next()) {
-            
-                datos[0] = rs.getString(1);
-                datos[1] = rs.getString(2);
-                datos[2] = rs.getString(3);
-                datos[3] = rs.getString(4);
-                datos[4] = rs.getString(5);
-                datos[5] = rs.getString(6);
-                datos[6] = rs.getString(7);
-                datos[7] = rs.getString(8);
-                datos[8] = rs.getString(9);
-                datos[9] = rs.getString(10);
-                datos[10] = rs.getString(11);
-                
-                model.addRow(datos);
-            
-            }
-        } catch(SQLException e) {
-                        System.out.println("Error al realizar busqueda " + e.getMessage());
-                    } finally{
-            try{
-                if(conn != null) {
-                    conn.close();
-                } if(pst != null) {
-                    pst.close();
-                }
-            } catch(SQLException e) {
-                System.out.println("Error al cerrar conexiones" + e.getMessage());
-            }
-        }  
+    
+    String query = "SELECT * FROM verRegistroEstudiante WHERE nombreE LIKE ?";
+    
+    if (soloDespachados) {
+        query += " AND Despachado = 1";  
     }
+
+    Object[] columnNames = {"Matricula", "Fecha", "Llegada", "Salida", "Nombre", "Edad", "Curso", "Diagnostico", "Medicamento", "Cantidad", "Personal", "Estado"};
+    DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
+
+    visor.setModel(model);
+
+    String[] datos = new String[12];  
+
+    try {
+        pst = conn.prepareStatement(query);
+        pst.setString(1, '%' + Nombre + '%'); 
+
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+           
+            for (int i = 0; i < 11; i++) {
+                datos[i] = rs.getString(i + 1);
+            }
+
+            
+            int despachado = rs.getInt("Despachado");
+            datos[11] = (despachado == 1) ? "Despachado" : "No Despachado";
+
+            model.addRow(datos);
+        }
+    } catch (SQLException e) {
+        System.out.println("Error al realizar búsqueda: " + e.getMessage());
+    } finally {
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+            if (pst != null) {
+                pst.close();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al cerrar conexiones: " + e.getMessage());
+        }
+    }
+}
+
     
     public void ActualizarDatos() {
         
@@ -255,6 +263,7 @@ public class VerRegistrosEst extends javax.swing.JInternalFrame {
         EliminarBTN = new javax.swing.JLabel();
         RecargarBTN = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        checkBoxDespachados = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(255, 255, 255));
@@ -328,6 +337,14 @@ public class VerRegistrosEst extends javax.swing.JInternalFrame {
         });
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 210, -1, -1));
 
+        checkBoxDespachados.setText("Ver despachados");
+        checkBoxDespachados.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDespachadosActionPerformed(evt);
+            }
+        });
+        getContentPane().add(checkBoxDespachados, new org.netbeans.lib.awtextra.AbsoluteConstraints(920, 180, -1, -1));
+
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Tablas/Multimedia/EstudiantesConsultadosBG.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -378,12 +395,18 @@ public class VerRegistrosEst extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_jLabel2MouseClicked
 
+    private void checkBoxDespachadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDespachadosActionPerformed
+        // TODO add your handling code here:
+        mostrarConsulta();
+    }//GEN-LAST:event_checkBoxDespachadosActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel ActualizarBTN;
     private javax.swing.JTextField BuscarNomTxt;
     private javax.swing.JLabel EliminarBTN;
     private javax.swing.JLabel RecargarBTN;
+    private javax.swing.JCheckBox checkBoxDespachados;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

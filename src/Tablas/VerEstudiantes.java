@@ -1,4 +1,4 @@
-/*
+ /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
  */
@@ -38,102 +38,121 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
         
         @Override
         public boolean isCellEditable(int row, int column) {
-            // Define las columnas que deseas bloquear
-            // Por ejemplo, si quieres bloquear la columna 0 (Matricula) y la columna 2 (Fecha del Turno):
+            
             return column != 0 && column != 3 && column != 1;
         }
     }
     
     public void mostrar() {
-    
-        Connection conn = Conexion.conectar();
-        Statement st = null;
-        String query = "SELECT * FROM verEstudiantes";
-        
-        Object[] columnNames = {"Matricula", "Nombre", "Edad", "Curso"};
-        DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
-        
-        visor.setModel(model);
-        
-        String[] datos = new String[4];
-        
-        try {
-            
-            st = conn.createStatement();
-            ResultSet rs = st.executeQuery(query);
-            
+    Connection conn = Conexion.conectar();
+    Statement st = null;
 
-            while(rs.next()) {
-            
-                datos[0] = rs.getString(1);
-                datos[1] = rs.getString(2);
-                datos[2] = rs.getString(3);
-                datos[3] = rs.getString(4);
-                
-                model.addRow(datos);
-            
-            } 
-               
-        } catch(SQLException e) {
-            System.out.println("Error al consultar estudiantes" + e.getMessage());
-        } finally {
-            try {
-                if(conn != null) {
-                    conn.close();
-                } if(st != null) {
-                    st.close();
-                }
-            } catch(SQLException e) {
-                System.out.println("Error al cerrar conexiones" + e.getMessage());
-            }
+    String query = "SELECT e.matricula, e.Nombre, e.Edad, e.Curso, " +
+                   "(SELECT COUNT(*) FROM verregistroestudiante vr WHERE vr.matricula = e.matricula) AS num_registros " +
+                   "FROM verEstudiantes e";
+
+    Object[] columnNames = {"Matricula", "Nombre", "Edad", "Curso", "Asiduidad"};
+    DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
+
+    visor.setModel(model);
+
+    String[] datos = new String[5];
+
+    try {
+        st = conn.createStatement();
+        ResultSet rs = st.executeQuery(query);
+
+        while (rs.next()) {
+            datos[0] = rs.getString("matricula");
+            datos[1] = rs.getString("Nombre");
+            datos[2] = rs.getString("Edad");
+            datos[3] = rs.getString("Curso");
+
+            int numRegistros = rs.getInt("num_registros");
+            datos[4] = (numRegistros > 5) ? "Recurrente" : "No tan recurrente";
+
+            model.addRow(datos);
         }
-    
-    }
-    
-    public void mostrarConsulta1() {
-        Connection conn = Conexion.conectar();
-        PreparedStatement pst = null;
-        String Nombre = BuscarNomTxt.getText();
-        
-        String query = "SELECT * FROM verEstudiantes WHERE nombre LIKE ?";
-        
-        Object[] columnNames = {"Matricula", "Nombre", "Edad", "Curso"};
-        DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
-        
-        visor.setModel(model);
-        
-        String[] datos = new String[4];
-        
+    } catch (SQLException e) {
+        System.out.println("Error al consultar estudiantes: " + e.getMessage());
+    } finally {
         try {
-            pst = conn.prepareStatement(query);
-            pst.setString(1, '%'+Nombre+'%');            
-
-            ResultSet rs = pst.executeQuery();
-            
-            while(rs.next()) {
-            
-                datos[0] = rs.getString(1);
-                datos[1] = rs.getString(2);
-                datos[2] = rs.getString(3);
-                datos[3] = rs.getString(4);
-                
-                model.addRow(datos);
-            
-            } 
-        } catch(SQLException e) {
-                        System.out.println("Error al realizar busqueda " + e.getMessage());
-                    } finally{
-            try{
-                if(conn != null) {
-                    conn.close();
-                } if(pst != null) {
-                    pst.close();
-                }
-            } catch(SQLException e) {
-                System.out.println("Error al cerrar conexiones" + e.getMessage());
-            }
-        }  
+            if (conn != null) conn.close();
+            if (st != null) st.close();
+        } catch (SQLException e) {
+            System.out.println("Error al cerrar conexiones: " + e.getMessage());
+        }
     }
+}
+
+    
+    
+
+    
+    
+    
+  public void mostrarConsulta1() {
+    Connection conn = Conexion.conectar();
+    PreparedStatement pst = null;
+    String Nombre = BuscarNomTxt.getText();
+
+    String query = "SELECT e.matricula, e.Nombre, e.Edad, e.Curso, " +
+                   "(SELECT COUNT(*) FROM verregistroestudiante vr WHERE vr.matricula = e.matricula) AS num_registros " +
+                   "FROM verEstudiantes e " +
+                   "WHERE e.nombre LIKE ?";
+
+    // Si el checkbox está seleccionado, filtrar recurrentes
+    if (recurrentecheck.isSelected()) {
+        query += " HAVING num_registros > 5";
+    }
+
+    Object[] columnNames = {"Matricula", "Nombre", "Edad", "Curso", "Asiduidad"};
+    DefaultTableModel model = new CustomTableModel(new Object[0][0], columnNames);
+    visor.setModel(model);
+
+    String[] datos = new String[5];
+
+    try {
+        pst = conn.prepareStatement(query);
+        pst.setString(1, "%" + Nombre + "%");
+
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            datos[0] = rs.getString("matricula");
+            datos[1] = rs.getString("Nombre");
+            datos[2] = rs.getString("Edad");
+            datos[3] = rs.getString("Curso");
+
+            int numRegistros = rs.getInt("num_registros");
+            datos[4] = (numRegistros > 5) ? "Recurrente" : "No tan recurrente";
+
+            boolean existe = false;
+            for (int i = 0; i < model.getRowCount(); i++) {
+                if (model.getValueAt(i, 0).equals(datos[0])) { // compara matrícula
+                existe = true;
+                break;
+    }
+}
+if (!existe) {
+    model.addRow(datos.clone());
+}
+
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al realizar búsqueda: " + e.getMessage());
+    } finally {
+        try {
+            if (conn != null) conn.close();
+            if (pst != null) pst.close();
+        } catch (SQLException e) {
+            System.out.println("Error al cerrar conexiones: " + e.getMessage());
+        }
+    }
+}
+
+
     
     public void mostrarConsulta2() {
         Connection conn = Conexion.conectar();
@@ -189,7 +208,7 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
                 
         int fila = visor.getSelectedRow();
         
-        String Matricula = this.visor.getValueAt(fila, 0).toString();
+        String Matricula = this.visor.getValueAt(   fila, 0).toString();
         String edadx = this.visor.getValueAt(fila, 2).toString();
 
         
@@ -287,6 +306,7 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
         EliminarBTN = new javax.swing.JLabel();
         RecargarBTN = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
+        recurrentecheck = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
 
         setClosable(true);
@@ -391,6 +411,14 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
         });
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(887, 250, 50, -1));
 
+        recurrentecheck.setText("Ver recurrentes");
+        recurrentecheck.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                recurrentecheckActionPerformed(evt);
+            }
+        });
+        getContentPane().add(recurrentecheck, new org.netbeans.lib.awtextra.AbsoluteConstraints(950, 260, -1, -1));
+
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Tablas/Multimedia/NewVerEstudiantesBG.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -466,6 +494,11 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_jLabel4MouseClicked
 
+    private void recurrentecheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recurrentecheckActionPerformed
+        // TODO add your handling code here:
+        mostrarConsulta1();
+    }//GEN-LAST:event_recurrentecheckActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel ActualizarBTN;
@@ -480,6 +513,7 @@ public class VerEstudiantes extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JCheckBox recurrentecheck;
     private javax.swing.JTable visor;
     // End of variables declaration//GEN-END:variables
 }
